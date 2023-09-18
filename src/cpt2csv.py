@@ -82,7 +82,6 @@ def main():
         # df["x"] = round((DIST_LIST[cpt_num] - X_MIN) / (X_MAX - X_MIN) * IMG_WIDTH)
 
         x = int(round((DIST_LIST[cpt_num] - X_MIN) / (X_MAX - X_MIN) * IMG_WIDTH))
-        print(x)
 
         # aggregate data, choose one
         # MEAN
@@ -99,6 +98,7 @@ def main():
     plt.imshow(M)
     plt.colorbar(orientation="horizontal")
     plt.savefig(f"./output/model_input.png")
+    plt.clf()
 
     df = pd.DataFrame(M)
     df.to_csv("./output/df.csv")
@@ -108,18 +108,18 @@ def main():
     model = load_model(generator, compile=False)
 
     # normalize Ic
-
-    # cs_to_evaluate = cs_to_evaluate.reshape(1, 32, 512, 1)
-    # normalized_data = IC_normalization(data_to_norm)
+    Mnorm = (M - np.min(M)) / (np.max(M) - np.min(M))
+    Mnorm = Mnorm.reshape(1, 32, 512, 1)
 
     # use model for prediction
-    gan_res = model.predict(M)
+    gan_res = model.predict(Mnorm)
 
-    # gan_res = reverse_IC_normalization(gan_res)
-    # gan_res = np.squeeze(gan_res)
-    # plt.imshow(gan_res)
-    # plt.colorbar(orientation="horizontal")
-    # plt.savefig(f"./output/model_output.png")
+    # reverse normalize
+    gan_res = np.min(M) + (gan_res + 1.0) / 2.0 * (np.max(M) - np.min(M))
+    gan_res = np.squeeze(gan_res)
+    plt.imshow(gan_res)
+    plt.colorbar(orientation="horizontal")
+    plt.savefig(f"./output/model_output.png")
 
 
 if __name__ == "__main__":
